@@ -35,8 +35,8 @@ while True:
     # the Webex Teams HTTP header, including the Authoriztion
     getHTTPHeader = {"Authorization": accessToken}
 
-# 4. Provide the URL to the Webex Teams messages API, and extract location from the received message.
-    
+    # 4. Provide the URL to the Webex Teams messages API, and extract location from the received message.
+
     # Send a GET request to the Webex Teams messages API.
     # - Use the GetParameters to get only the latest message.
     # - Store the message in the "r" variable.
@@ -48,7 +48,9 @@ while True:
     # verify if the retuned HTTP status code is 200/OK
     if not r.status_code == 200:
         raise Exception(
-            "Incorrect reply from Webex Teams API. Status code: {}".format(r.status_code)
+            "Incorrect reply from Webex Teams API. Status code: {}".format(
+                r.status_code
+            )
         )
 
     # get the JSON formatted returned data
@@ -60,24 +62,24 @@ while True:
 
     # store the array of messages
     messages = json_data["items"]
-    
+
     # store the text of the first message in the array
     message = messages[0]["text"]
     print("Received message: " + message)
 
     # check if the text of the message starts with the magic character "/" followed by your studentID and a space and followed by a command name
     #  e.g.  "/66070123 create"
-    if message.find('/65070171') == 0:
+    if message.find("/65070171") == 0:
 
         # extract the command
-        command = message.replace('/65070171', '').strip()
+        command = message.replace("/65070171", "").strip()
         print(command)
 
-# 5. Complete the logic for each command
+        # 5. Complete the logic for each command
         responseMessage = ""
 
         if command == "create":
-            responseMessage = restconf.create() 
+            responseMessage = restconf.create()
         elif command == "delete":
             responseMessage = restconf.delete()
         elif command == "enable":
@@ -88,8 +90,8 @@ while True:
             responseMessage = restconf.status()
         else:
             responseMessage = "Error: No command or unknown command"
-        
-# 6. Complete the code to post the message to the Webex Teams room.
+
+        # 6. Complete the code to post the message to the Webex Teams room.
 
         # the Webex Teams HTTP headers, including the Authoriztion and Content-Type
         postHTTPHeaders = {
@@ -110,5 +112,7 @@ while True:
         )
         if not r.status_code == 200:
             raise Exception(
-                "Incorrect reply from Webex Teams API. Status code: {}".format(r.status_code)
+                "Incorrect reply from Webex Teams API. Status code: {}".format(
+                    r.status_code
+                )
             )
