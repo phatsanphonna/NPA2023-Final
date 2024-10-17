@@ -7,16 +7,18 @@ api_url = "<!!!REPLACEME with URL of RESTCONF Configuration API!!!>"
 
 # the RESTCONF HTTP headers, including the Accept and Content-Type
 # Two YANG data formats (JSON and XML) work with RESTCONF 
-headers = <!!!REPLACEME with Accept and Content-Type information headers!!!>
+headers = {
+    "Content-Type": "application/yang-data+json",
+}
 basicauth = ("admin", "cisco")
 
 
 def create():
-    yangConfig = <!!!REPLACEME with YANG data!!!> 
+    yangConfig = {}
 
-    resp = requests.<!!!REPLACEME with the proper HTTP Method!!!>(
+    resp = requests.post(
         <!!!REPLACEME with URL!!!>, 
-        data=json.dumps(<!!!REPLACEME with yangConfig!!!>), 
+        data=json.dumps(yangConfig), 
         auth=basicauth, 
         headers=<!!!REPLACEME with HTTP Header!!!>, 
         verify=False
