@@ -3,7 +3,7 @@ import requests
 requests.packages.urllib3.disable_warnings()
 
 # Router IP Address is 10.0.15.189
-api_url = "<!!!REPLACEME with URL of RESTCONF Configuration API!!!>"
+api_url = "https://10.0.15.233/restconf/data/ietf-interfaces:interfaces"
 
 # the RESTCONF HTTP headers, including the Accept and Content-Type
 # Two YANG data formats (JSON and XML) work with RESTCONF 
@@ -14,28 +14,43 @@ basicauth = ("admin", "cisco")
 
 
 def create():
-    yangConfig = {}
+    yangConfig = {
+    "ietf-interfaces:interface": {
+        "name": "loopback65070171",
+        "type": "iana-if-type:softwareLoopback",
+        "enabled": True,
+        "ietf-ip:ipv4": {
+            "address": [
+                {
+                    "ip": "172.30.171.1",
+                    "netmask": "255.255.255.0"
+                }
+            ]
+        },
+        "ietf-ip:ipv6": {}
+    }
+}
 
-    resp = requests.post(
-        <!!!REPLACEME with URL!!!>, 
+    resp = requests.put(
+        f'{api_url}/interface=loopback65070171', 
         data=json.dumps(yangConfig), 
-        auth=basicauth, 
-        headers=<!!!REPLACEME with HTTP Header!!!>, 
+        auth=basicauth,
+        headers=headers,
         verify=False
         )
 
     if(resp.status_code >= 200 and resp.status_code <= 299):
         print("STATUS OK: {}".format(resp.status_code))
         return "<!!!REPLACEME with proper message!!!>"
-    else:
-        print('Error. Status Code: {}'.format(resp.status_code))
+
+    print('Error. Status Code: {}'.format(resp.status_code))
 
 
 def delete():
-    resp = requests.<!!!REPLACEME with the proper HTTP Method!!!>(
-        <!!!REPLACEME with URL!!!>, 
+    resp = requests.delete(
+        f'{api_url}/interface=loopback65070171', 
         auth=basicauth, 
-        headers=<!!!REPLACEME with HTTP Header!!!>, 
+        headers=headers, 
         verify=False
         )
 
