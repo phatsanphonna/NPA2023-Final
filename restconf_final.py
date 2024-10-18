@@ -1,10 +1,12 @@
 import json
+from requests.auth import HTTPBasicAuth
 import requests
+import xmltodict
 requests.packages.urllib3.disable_warnings()
 
 # Router IP Address is 10.0.15.189
-api_url = "https://10.0.15.233/restconf/data/ietf-interfaces:interfaces"
-loopback_name = 'loopback65070171'
+api_url = "https://10.0.15.109/restconf/data/ietf-interfaces:interfaces"
+loopback_name = 'Loopback65070171'
 student_id = '65070171'
 
 # the RESTCONF HTTP headers, including the Accept and Content-Type
@@ -12,11 +14,15 @@ student_id = '65070171'
 headers = {
     "Content-Type": "application/yang-data+json",
 }
-basicauth = ("admin", "cisco")
+basicauth = HTTPBasicAuth("admin", "cisco")
 
 
 def interface_exist():
-    response = requests.get(f'{api_url}/interface={loopback_name}')
+    response = requests.get(f'{api_url}/interface={loopback_name}', auth=basicauth, verify=False)
+
+    if response.status_code == 404:
+        print("STATUS NOT FOUND: {}".format(response.status_code))
+
     return response.status_code != 404
 
 
@@ -53,7 +59,7 @@ def create():
         print("STATUS OK: {}".format(resp.status_code))
         return f"Interface loopback {student_id} is created successfully"
 
-    print('Error. Status Code: {}'.format(resp.status_code))
+    print('Error. Status Code: {} {}'.format(resp.status_code, resp.text))
 
 
 def delete():
@@ -80,7 +86,18 @@ def enable():
 
     yangConfig = {
         "ietf-interfaces:interface": {
+            "name": loopback_name,
+            "type": "iana-if-type:softwareLoopback",
             "enabled": True,
+            "ietf-ip:ipv4": {
+                "address": [
+                    {
+                        "ip": "172.30.171.1",
+                        "netmask": "255.255.255.0"
+                    }
+                ]
+            },
+            "ietf-ip:ipv6": {}
         }
     }
 
@@ -105,7 +122,18 @@ def disable():
 
     yangConfig = {
         "ietf-interfaces:interface": {
+            "name": loopback_name,
+            "type": "iana-if-type:softwareLoopback",
             "enabled": False,
+            "ietf-ip:ipv4": {
+                "address": [
+                    {
+                        "ip": "172.30.171.1",
+                        "netmask": "255.255.255.0"
+                    }
+                ]
+            },
+            "ietf-ip:ipv6": {}
         }
     }
 
@@ -122,29 +150,35 @@ def disable():
         return f"Interface loopback {student_id} is shutdowned successfully"
 
     print('Error. Status Code: {}'.format(resp.status_code))
+    return f"Cannot shutdown: Interface loopback {student_id}"
 
 
 def status():
-    api_url_status = "<!!!REPLACEME with URL of RESTCONF Operational API!!!>"
+    if not interface_exist():
+        return f"No Interface loopback {student_id}"
 
-    resp = requests.<!!!REPLACEME with the proper HTTP Method!!!>(
-        <!!!REPLACEME with URL!!!>, 
+    api_url_status = f"{api_url}-state"
+
+    resp = requests.get(
+        api_url_status, 
         auth=basicauth, 
-        headers=<!!!REPLACEME with HTTP Header!!!>, 
+        headers=headers, 
         verify=False
         )
 
-    if(resp.status_code >= 200 and resp.status_code <= 299):
+    if resp.status_code >= 200 and resp.status_code <= 299:
         print("STATUS OK: {}".format(resp.status_code))
-        response_json = resp.json()
-        admin_status = <!!!REPLACEME!!!>
-        oper_status = <!!!REPLACEME!!!>
+        payload = xmltodict.parse(resp.text)
+        
+        for intf in  payload.get('interfaces-state').get('interface'):
+            if intf['name'] == loopback_name:
+                interface = intf
+    
+        admin_status = interface['admin-status']
+        oper_status = interface['oper-status']
         if admin_status == 'up' and oper_status == 'up':
-            return "<!!!REPLACEME with proper message!!!>"
+            return f"Interface loopback {student_id} is enabled"
         elif admin_status == 'down' and oper_status == 'down':
-            return "<!!!REPLACEME with proper message!!!>"
-    elif(resp.status_code == 404):
-        print("STATUS NOT FOUND: {}".format(resp.status_code))
-        return "<!!!REPLACEME with proper message!!!>"
-    else:
-        print('Error. Status Code: {}'.format(resp.status_code))
+            return f"Interface loopback {student_id} is disabled"
+        
+    print('Error. Status Code: {}'.format(resp.status_code))

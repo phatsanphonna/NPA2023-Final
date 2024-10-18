@@ -14,13 +14,13 @@ import restconf_final as restconf
 #######################################################################################
 # 2. Assign the Webex hard-coded access token to the variable accessToken.
 
-accessToken = "Bearer <!!!REPLACEME with hard-coded token!!!>"
+accessToken = "Bearer "
 
 #######################################################################################
 # 3. Prepare parameters get the latest message for messages API.
 
 # Defines a variable that will hold the roomId
-roomIdToGetMessages = "<!!!REPLACEME with roomID of the NPA2023 Webex Teams room!!!>"
+roomIdToGetMessages = ""
 
 
 while True:
@@ -41,15 +41,15 @@ while True:
     # - Use the GetParameters to get only the latest message.
     # - Store the message in the "r" variable.
     r = requests.get(
-        "<!!!REPLACEME with URL of Webex Teams Messages API!!!>",
-        params=json.dumps(getParameters),
-        headers=json.dumps(getHTTPHeader),
+        f"https://webexapis.com/v1/messages?roomId={roomIdToGetMessages}&max=1",
+        headers=getHTTPHeader,
     )
     # verify if the retuned HTTP status code is 200/OK
     if not r.status_code == 200:
         raise Exception(
-            "Incorrect reply from Webex Teams API. Status code: {}".format(
-                r.status_code
+            "Incorrect reply from Webex Teams API. Status code: {} {}".format(
+                r.status_code,
+                r.text
             )
         )
 
@@ -83,7 +83,7 @@ while True:
         elif command == "delete":
             responseMessage = restconf.delete()
         elif command == "enable":
-            responseMessage = restconf.delete()
+            responseMessage = restconf.enable()
         elif command == "disable":
             responseMessage = restconf.disable()
         elif command == "status":
@@ -106,13 +106,13 @@ while True:
 
         # Post the call to the Webex Teams message API.
         r = requests.post(
-            "<!!!REPLACEME with URL of Webex Teams Messages API!!!>",
+            "https://webexapis.com/v1/messages",
             data=json.dumps(postData),
             headers=postHTTPHeaders,
         )
         if not r.status_code == 200:
             raise Exception(
-                "Incorrect reply from Webex Teams API. Status code: {}".format(
-                    r.status_code
+                "Incorrect reply from Webex Teams API. Status code: {} {}".format(
+                    r.status_code, r.text
                 )
             )
