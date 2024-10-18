@@ -4,6 +4,8 @@ requests.packages.urllib3.disable_warnings()
 
 # Router IP Address is 10.0.15.189
 api_url = "https://10.0.15.233/restconf/data/ietf-interfaces:interfaces"
+loopback_name = 'loopback65070171'
+student_id = '65070171'
 
 # the RESTCONF HTTP headers, including the Accept and Content-Type
 # Two YANG data formats (JSON and XML) work with RESTCONF 
@@ -13,10 +15,15 @@ headers = {
 basicauth = ("admin", "cisco")
 
 
+def interface_exist():
+    response = requests.get(f'{api_url}/interface={loopback_name}')
+    return response.status_code != 404
+
+
 def create():
     yangConfig = {
     "ietf-interfaces:interface": {
-        "name": "loopback65070171",
+        "name": loopback_name,
         "type": "iana-if-type:softwareLoopback",
         "enabled": True,
         "ietf-ip:ipv4": {
@@ -30,35 +37,41 @@ def create():
         "ietf-ip:ipv6": {}
     }
 }
+    
+    if interface_exist():
+        return f"Cannot create: Interface loopback {student_id}"
 
     resp = requests.put(
-        f'{api_url}/interface=loopback65070171', 
+        f'{api_url}/interface={loopback_name}', 
         data=json.dumps(yangConfig), 
         auth=basicauth,
         headers=headers,
         verify=False
         )
 
-    if(resp.status_code >= 200 and resp.status_code <= 299):
+    if resp.status_code >= 200 and resp.status_code <= 299:
         print("STATUS OK: {}".format(resp.status_code))
-        return "<!!!REPLACEME with proper message!!!>"
+        return f"Interface loopback {student_id} is created successfully"
 
     print('Error. Status Code: {}'.format(resp.status_code))
 
 
 def delete():
+    if not interface_exist():
+        return f"Cannot delete: Interface loopback {student_id}"
+
     resp = requests.delete(
-        f'{api_url}/interface=loopback65070171', 
+        f'{api_url}/interface={loopback_name}', 
         auth=basicauth, 
         headers=headers, 
         verify=False
         )
 
-    if(resp.status_code >= 200 and resp.status_code <= 299):
+    if resp.status_code >= 200 and resp.status_code <= 299:
         print("STATUS OK: {}".format(resp.status_code))
-        return "<!!!REPLACEME with proper message!!!>"
-    else:
-        print('Error. Status Code: {}'.format(resp.status_code))
+        return f"Interface loopback {student_id} is deleted successfully"
+
+    print('Error. Status Code: {}'.format(resp.status_code))
 
 
 def enable():
